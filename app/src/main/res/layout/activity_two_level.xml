@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pizzk.android.ptr.view.RefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <pizzk.android.ptr.view.RefreshAttach
+        style="@style/RefreshHeader"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:gravity="bottom"
+        android:paddingBottom="10dp"/>
+
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:elevation="0dp">
+
+            <android.support.design.widget.CollapsingToolbarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_scrollFlags="scroll">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:background="@color/colorAccent">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center"
+                        android:text="今日热映"
+                        android:textColor="#ffffff"
+                        android:textSize="18sp"/>
+                </LinearLayout>
+            </android.support.design.widget.CollapsingToolbarLayout>
+
+            <TextView
+                android:id="@+id/tvFoldTitle"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="#e9deab"
+                android:gravity="center"
+                android:text="This is a TabLayout"
+                android:textColor="#8a8a8a"
+                android:textSize="17sp"/>
+        </android.support.design.widget.AppBarLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycleView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+    </android.support.design.widget.CoordinatorLayout>
+
+
+    <pizzk.android.ptr.view.RefreshAttach
+        style="@style/RefreshFooter"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:gravity="top"
+        android:paddingTop="5dp"/>
+
+</pizzk.android.ptr.view.RefreshLayout>

@@ -1,0 +1,49 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="MenuButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:layout_marginLeft">15dp</item>
+        <item name="android:layout_marginRight">15dp</item>
+        <item name="android:layout_marginTop">45dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:background">@drawable/menu_button</item>
+    </style>
+
+    <style name="RefreshWidget">
+        <item name="hint_active">该放手了</item>
+        <item name="ms_loading_duration">1000</item>
+        <item name="ms_rebound">150</item>
+
+    </style>
+
+    <style name="RefreshHeader" parent="RefreshWidget">
+        <item name="active_value">60dp</item>
+        <item name="hint_finish">刷新完成</item>
+        <item name="hint_opening">下拉刷新</item>
+        <item name="hint_refresh">正在刷新</item>
+        <item name="hint_less">本页面由Pizzk提供技术支持</item>
+        <item name="ms_finish_hint">500</item>
+    </style>
+
+    <style name="RefreshFooter" parent="RefreshWidget">
+        <item name="active_value">25dp</item>
+        <item name="hint_finish">加载完成</item>
+        <item name="hint_opening">上拉加载</item>
+        <item name="hint_refresh">正在加载</item>
+        <item name="hint_less">木有了，该放手啦~</item>
+        <item name="ms_finish_hint">500</item>
+        <item name="auto_close_less">true</item>
+    </style>
+</resources>

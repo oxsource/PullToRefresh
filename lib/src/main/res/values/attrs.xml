@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="RefreshAttach">
+        <!--状态提示文字-->
+        <attr name="hint_opening" format="string"/>
+        <attr name="hint_active" format="string"/>
+        <attr name="hint_refresh" format="string"/>
+        <attr name="hint_finish" format="string"/>
+        <attr name="hint_less" format="string"/>
+        <!--方向图标-->
+        <attr name="icon_direction" format="reference"/>
+        <!--加载图标-->
+        <attr name="icon_loading" format="reference"/>
+        <!--完成图标-->
+        <attr name="icon_finish" format="reference"/>
+        <!--回弹时间，单位毫秒-->
+        <attr name="ms_rebound" format="integer"/>
+        <!--提示完成时间，单位毫秒-->
+        <attr name="ms_finish_hint" format="integer"/>
+        <!--加载图标自转周期-->
+        <attr name="ms_loading_duration" format="integer"/>
+        <!--触发临界值，单位毫秒-->
+        <attr name="active_value" format="dimension"/>
+        <!--阻尼系数(0,1)-->
+        <attr name="damping" format="float"/>
+        <!--是否自动关闭less-->
+        <attr name="auto_close_less" format="boolean"/>
+    </declare-styleable>
+</resources>
