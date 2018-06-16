@@ -1,7 +1,9 @@
 package pizzk.android.ptr.api;
 
+import android.support.annotation.NonNull;
+
 import pizzk.android.ptr.constant.RefreshOwner;
 
 public interface RefreshListener {
-    void onRefresh(RefreshOwner owner);
+    void onRefresh(@NonNull RefreshOwner owner);
 }
