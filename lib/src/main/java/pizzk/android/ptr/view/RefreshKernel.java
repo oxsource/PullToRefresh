@@ -9,27 +9,25 @@ import android.widget.Scroller;
 import pizzk.android.ptr.anim.AnimatorHolder;
 import pizzk.android.ptr.anim.AnimatorListener;
 import pizzk.android.ptr.api.IRefreshAttach;
+import pizzk.android.ptr.api.RefreshControl;
 import pizzk.android.ptr.api.IRefreshKernel;
 import pizzk.android.ptr.api.IRefreshLayout;
-import pizzk.android.ptr.api.RefreshListener;
 import pizzk.android.ptr.constant.RefreshOwner;
 import pizzk.android.ptr.constant.RefreshState;
 
 public class RefreshKernel implements IRefreshKernel {
     //刷新布局接口
     private IRefreshLayout layout;
-    private RefreshListener listener;
-
     //刷新状态
     private RefreshState mState = RefreshState.NONE;
     private RefreshOwner mOwner = RefreshOwner.NONE;
-
     //是否已经激活
     private boolean isRefreshFlag;
     private boolean isCloseFoot;
     private boolean isTouchLock;
     private boolean isAutoRefresh;
-
+    //对外开放控制属性
+    private final RefreshControl control;
     //动画属性
     private final AnimatorHolder mAnimator;
     //动画结束监听器
@@ -52,12 +50,8 @@ public class RefreshKernel implements IRefreshKernel {
 
     RefreshKernel(@NonNull IRefreshLayout layout) {
         this.layout = layout;
-        mAnimator = new AnimatorHolder();
-    }
-
-    @Override
-    public void setListener(RefreshListener listener) {
-        this.listener = listener;
+        this.control = new RefreshControl(this, layout);
+        this.mAnimator = new AnimatorHolder();
     }
 
     @Override
@@ -68,6 +62,11 @@ public class RefreshKernel implements IRefreshKernel {
     @Override
     public RefreshOwner getOwner() {
         return mOwner;
+    }
+
+    @Override
+    public RefreshControl getControl() {
+        return control;
     }
 
     @Override
@@ -113,6 +112,17 @@ public class RefreshKernel implements IRefreshKernel {
     }
 
     @Override
+    public boolean isOwnerLess(RefreshOwner owner) {
+        boolean value = false;
+        if (owner == RefreshOwner.HEADER) {
+            value = control.isHeadLess();
+        } else if (owner == RefreshOwner.FOOTER) {
+            value = control.isFootLess();
+        }
+        return value;
+    }
+
+    @Override
     public int onPreScroll(int dy) {
         int consumedY = 0;
         int scrollY = layout.getView().getScrollY();
@@ -126,27 +136,33 @@ public class RefreshKernel implements IRefreshKernel {
             if (isReachTop() && dy < 0) {
                 //头部下拉
                 consumedY = layout.getHeader().onDamping(scrollY, dy);
-                mOwner = RefreshOwner.HEADER;
+                //判断是否无限拉动
+                if (!control.isHeadInfiniteDrag() && (scrollY + consumedY) <= 0) {
+                    consumedY = 0;
+                }
             } else if (dy > 0 && offsetTopLimit > 0) {
                 //头部上拉
                 consumedY = Math.min(offsetTopLimit, dy);
-                mOwner = RefreshOwner.HEADER;
             }
+            if (0 != consumedY) mOwner = RefreshOwner.HEADER;
         }
         if (null != fView && fView.isEnabled() && RefreshOwner.HEADER != mOwner) {
             if (isReachBottom() && dy > 0) {
                 //底部上拉
                 int pullY = Math.min(fHeight, dy);
                 //非刷新状态下拉有阻尼效果
-                boolean noDamping = layout.getFooter().isLess() && !layout.getFooter().autoCloseLess();
+                boolean noDamping = isOwnerLess(RefreshOwner.FOOTER) && !layout.getFooter().autoCloseLess();
                 int offset = scrollY - hHeight - fHeight;
                 consumedY = noDamping ? pullY : layout.getFooter().onDamping(offset, pullY);
-                mOwner = RefreshOwner.FOOTER;
+                //判断是否无限拉动
+                if (!control.isFootInfiniteDrag() && (scrollY + consumedY) >= (hHeight + fHeight)) {
+                    consumedY = 0;
+                }
             } else if (dy < 0 && scrollY > hHeight) {
                 //底部下拉
                 consumedY = (scrollY + dy) < hHeight ? (hHeight - scrollY) : dy;
-                mOwner = RefreshOwner.FOOTER;
             }
+            if (0 != consumedY) mOwner = RefreshOwner.FOOTER;
         }
         return consumedY;
     }
@@ -228,13 +244,13 @@ public class RefreshKernel implements IRefreshKernel {
         IRefreshAttach attach = getAttach();
         if (null == attach) return;
         if (RefreshState.REFRESHING == getState()) return;
-        if (attach.isLess()) {
+        if (isOwnerLess(owner)) {
             onStopRefresh(false);
         } else {
             isAutoRefresh = RefreshState.NONE == getState();
             mState = RefreshState.REFRESHING;
             notifyStateChanged();
-            if (null != listener) listener.onRefresh(owner);
+            if (null != control.getListener()) control.getListener().onRefresh(owner);
         }
     }
 
@@ -274,7 +290,7 @@ public class RefreshKernel implements IRefreshKernel {
                     isCloseFoot = true;
                     isTouchLock = true;
                 } else {
-                    targetY = attach.isLess() && !attach.autoCloseLess() ? 0 : getHeadHeight();
+                    targetY = isOwnerLess(getOwner()) && !attach.autoCloseLess() ? 0 : getHeadHeight();
                 }
             }
         } else if (RefreshState.REFRESHING == getState()) {

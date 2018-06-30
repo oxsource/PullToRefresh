@@ -7,6 +7,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 
+import pizzk.android.ptr.api.RefreshControl;
 import pizzk.android.ptr.api.RefreshListener;
 import pizzk.android.ptr.constant.RefreshOwner;
 import pizzk.android.ptr.view.RefreshLayout;
@@ -16,6 +17,7 @@ public class FoldListActivity extends AppCompatActivity implements RefreshListen
     private RefreshLayout layout;
     private RefreshOwner owner;
     private AppBarLayout appBarLayout;
+    private RefreshControl control;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,19 +25,18 @@ public class FoldListActivity extends AppCompatActivity implements RefreshListen
         setTitle("Pizzk PullToRefresh");
         setContentView(R.layout.activity_two_level);
         appBarLayout = findViewById(R.id.appBarLayout);
-
         RecyclerView recyclerView = findViewById(R.id.recycleView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         //防止数据更新完成后闪屏
         ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
-
         adapter = new MovieListAdapter();
         recyclerView.setAdapter(adapter);
         //刷新布局
         layout = findViewById(R.id.layout);
         layout.setTwoLevel(recyclerView);
-        layout.startRefresh(RefreshOwner.HEADER);
-        layout.getKernel().setListener(this::onRefresh);
+        control = layout.getKernel().getControl();
+        control.startRefresh(RefreshOwner.HEADER);
+        control.setListener(this::onRefresh);
         layout.getFooter().getView().setEnabled(true);
     }
 
@@ -64,17 +65,17 @@ public class FoldListActivity extends AppCompatActivity implements RefreshListen
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            layout.stopRefresh(true);
+            control.stopRefresh(true);
             boolean flag = false;
             if (RefreshOwner.HEADER == owner) {
                 adapter.setItemCount(0);
                 flag = true;
-                layout.getFooter().setLess(false);
+                control.setFootLess(false);
             }
             int startPos = adapter.getItemCount();
             int APPEND_COUNT = 10;
             adapter.setItemCount(startPos + APPEND_COUNT);
-            layout.getFooter().setLess(adapter.getItemCount() >= 3 * APPEND_COUNT);
+            control.setFootLess(adapter.getItemCount() >= 3 * APPEND_COUNT);
             if (flag) {
                 adapter.notifyDataSetChanged();
             } else {

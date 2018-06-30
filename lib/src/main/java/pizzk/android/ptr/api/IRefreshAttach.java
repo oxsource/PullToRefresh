@@ -25,17 +25,6 @@ public interface IRefreshAttach extends IRefreshView {
     int getFinishHintTime();
 
     /**
-     * 是否处于less状态
-     */
-    boolean isLess();
-
-    /**
-     * 设置less状态
-     */
-    void setLess(boolean value);
-
-
-    /**
      * 阻尼回调
      *
      * @param current 当前位置

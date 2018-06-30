@@ -17,6 +17,7 @@ import pizzk.android.ptr.api.IRefreshAttach;
 import pizzk.android.ptr.api.IRefreshKernel;
 import pizzk.android.ptr.api.IRefreshLayout;
 import pizzk.android.ptr.api.IRefreshView;
+import pizzk.android.ptr.api.RefreshControl;
 import pizzk.android.ptr.constant.RefreshOwner;
 import pizzk.android.ptr.constant.RefreshState;
 import pizzk.android.ptr.wrapper.AttachWrapper;
@@ -28,14 +29,11 @@ final public class RefreshLayout extends ViewGroup implements IRefreshLayout {
     private IRefreshAttach mFootWidget;
     private IRefreshView mOneLevel;
     private IRefreshView mTwoLevel;
-
     //嵌套滑动属性
     private NestedScrollingParentHelper mNspHelper;
     private NestedScrollingChildHelper mNscHelper;
-
     //核心组件
     private RefreshKernel mKernel;
-
     //滑动属性
     private boolean initScrollFlag = true;
     private int mLastY;
@@ -282,18 +280,34 @@ final public class RefreshLayout extends ViewGroup implements IRefreshLayout {
     }
 
     @Override
-    public void stopRefresh(boolean success) {
-        mKernel.onStopRefresh(success);
-    }
-
-    @Override
-    public void startRefresh(RefreshOwner owner) {
-        if (RefreshOwner.NONE != mKernel.getOwner()) return;
-        post(() -> mKernel.onStartRefresh(owner));
-    }
-
-    @Override
     public View getView() {
         return this;
+    }
+
+    @Override
+    public void setAttach(IRefreshAttach attach, RefreshOwner owner) {
+        if (RefreshState.NONE != getKernel().getState()) return;
+        if (null == attach || null == attach.getView()) return;
+        if (owner == RefreshOwner.FOOTER) {
+            if (null == mFootWidget) return;
+            View old = mFootWidget.getView();
+            int index = indexOfChild(old);
+            if (index < 0) return;
+            removeView(old);
+            addView(attach.getView(), index);
+            mFootWidget = attach;
+        } else if (owner == RefreshOwner.HEADER) {
+            if (null == mHeadWidget) return;
+            View old = mHeadWidget.getView();
+            int index = indexOfChild(old);
+            if (index < 0) return;
+            removeView(old);
+            addView(attach.getView(), index);
+            mHeadWidget = attach;
+        } else {
+            return;
+        }
+        requestLayout();
+        invalidate();
     }
 }

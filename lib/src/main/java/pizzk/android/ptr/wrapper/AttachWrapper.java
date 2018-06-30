@@ -7,7 +7,6 @@ import pizzk.android.ptr.api.IRefreshAttach;
 
 public class AttachWrapper implements IRefreshAttach {
     private View mView;
-    private boolean less = false;
 
     public AttachWrapper(View view) {
         mView = view;
@@ -31,16 +30,6 @@ public class AttachWrapper implements IRefreshAttach {
     @Override
     public int getFinishHintTime() {
         return 1500;
-    }
-
-    @Override
-    public boolean isLess() {
-        return less;
-    }
-
-    @Override
-    public void setLess(boolean value) {
-        this.less = value;
     }
 
     @Override

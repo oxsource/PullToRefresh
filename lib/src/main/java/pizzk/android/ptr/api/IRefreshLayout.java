@@ -8,7 +8,7 @@ import pizzk.android.ptr.constant.RefreshOwner;
 public interface IRefreshLayout extends IRefreshView, NestedScrollingParent, NestedScrollingChild {
 
     /**
-     * 获取核心组件
+     * 获取核心处理器
      */
     IRefreshKernel getKernel();
 
@@ -23,6 +23,11 @@ public interface IRefreshLayout extends IRefreshView, NestedScrollingParent, Nes
     IRefreshAttach getFooter();
 
     /**
+     * 设置附件
+     */
+    void setAttach(IRefreshAttach attach, RefreshOwner owner);
+
+    /**
      * 获取一级内容部布局
      */
     IRefreshView getOneLevel();
@@ -31,18 +36,4 @@ public interface IRefreshLayout extends IRefreshView, NestedScrollingParent, Nes
      * 获取二级内容部布局
      */
     IRefreshView getTwoLevel();
-
-    /**
-     * 停止刷新
-     *
-     * @param success 是否调用成功
-     */
-    void stopRefresh(boolean success);
-
-    /**
-     * 开始刷新
-     *
-     * @param owner 调用刷新所属对象
-     */
-    void startRefresh(RefreshOwner owner);
 }

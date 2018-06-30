@@ -8,6 +8,11 @@ import pizzk.android.ptr.constant.RefreshState;
  */
 public interface IRefreshKernel {
     /**
+     * 获取控制器
+     */
+    RefreshControl getControl();
+
+    /**
      * 获取当前刷新状态
      */
     RefreshState getState();
@@ -27,7 +32,6 @@ public interface IRefreshKernel {
      */
     boolean isReachBottom();
 
-
     /**
      * 判断是够使用Touch拦截机制
      *
@@ -39,6 +43,11 @@ public interface IRefreshKernel {
      * 是否需要将Touch锁定
      */
     boolean isTouchLock();
+
+    /**
+     * 判断Owner是否Less
+     */
+    boolean isOwnerLess(RefreshOwner owner);
 
     /**
      * 滑动事件预处理
@@ -89,13 +98,6 @@ public interface IRefreshKernel {
      * 关闭刷新
      */
     void onStopRefresh(boolean success);
-
-    /**
-     * 设置刷新回调
-     *
-     * @param listener 刷新回调接口
-     */
-    void setListener(RefreshListener listener);
 
     /**
      * 状态调整

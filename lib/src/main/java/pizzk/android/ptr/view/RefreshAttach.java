@@ -29,7 +29,6 @@ public class RefreshAttach extends RelativeLayout implements IRefreshAttach {
     private ImageView vFinished;
     //使用FootLess和HeadLess的布局
     private View vAttachLess;
-    private boolean less;
 
     //刷新状态属性
     private RefreshState lastState;
@@ -122,16 +121,6 @@ public class RefreshAttach extends RelativeLayout implements IRefreshAttach {
     }
 
     @Override
-    public boolean isLess() {
-        return less;
-    }
-
-    @Override
-    public void setLess(boolean value) {
-        this.less = value;
-    }
-
-    @Override
     public int onDamping(int current, int offset) {
         float reduce = 0.0f;
         if (isUseForHeader() && current < 0) {
@@ -152,7 +141,6 @@ public class RefreshAttach extends RelativeLayout implements IRefreshAttach {
     public void onDragging(IRefreshLayout layout, float percent) {
         IRefreshKernel kernel = layout.getKernel();
         owner = kernel.getOwner();
-
         if (lastState == kernel.getState()) return;
         switch (kernel.getState()) {
             case ACTIVE:
@@ -175,8 +163,7 @@ public class RefreshAttach extends RelativeLayout implements IRefreshAttach {
                 vContent.setText(getHintOpening());
                 setIconVisibility(VISIBLE, GONE, GONE);
                 changeArrowDirection(false);
-
-                if (isLess()) {
+                if (kernel.isOwnerLess(owner)) {
                     vRefresh.setVisibility(GONE);
                     vAttachLess.setVisibility(VISIBLE);
                 } else {
@@ -196,6 +183,22 @@ public class RefreshAttach extends RelativeLayout implements IRefreshAttach {
         if (vLoading.getAnimation() != null) {
             vLoading.getAnimation().cancel();
         }
+    }
+
+    public ImageView getDragView() {
+        return vArrow;
+    }
+
+    public TextView getContentView() {
+        return vContent;
+    }
+
+    public ImageView getLoadingView() {
+        return vLoading;
+    }
+
+    public ImageView getFinishedView() {
+        return vFinished;
     }
 
     public String getHintOpening() {

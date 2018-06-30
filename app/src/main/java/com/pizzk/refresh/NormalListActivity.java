@@ -6,6 +6,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 
+import pizzk.android.ptr.api.RefreshControl;
 import pizzk.android.ptr.constant.RefreshOwner;
 import pizzk.android.ptr.api.RefreshListener;
 import pizzk.android.ptr.view.RefreshLayout;
@@ -14,6 +15,8 @@ public class NormalListActivity extends AppCompatActivity implements RefreshList
     private MovieListAdapter adapter;
     private RefreshLayout layout;
     private RefreshOwner owner;
+    private RefreshControl control;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +32,13 @@ public class NormalListActivity extends AppCompatActivity implements RefreshList
         recyclerView.setAdapter(adapter);
         //刷新布局
         layout = findViewById(R.id.layout);
-        layout.startRefresh(RefreshOwner.HEADER);
-        layout.getKernel().setListener(this::onRefresh);
+        //测试自定义头部刷新控件
+        NewRefreshHeader header = (NewRefreshHeader) getLayoutInflater().inflate(R.layout.movie_refresh_head_layout, null);
+        layout.setAttach(header, RefreshOwner.HEADER);
+        //
+        control = layout.getKernel().getControl();
+        control.startRefresh(RefreshOwner.HEADER);
+        control.setListener(this::onRefresh);
     }
 
     @Override
@@ -42,17 +50,17 @@ public class NormalListActivity extends AppCompatActivity implements RefreshList
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            layout.stopRefresh(true);
+            control.stopRefresh(true);
             boolean flag = false;
             if (RefreshOwner.HEADER == owner) {
                 adapter.setItemCount(0);
                 flag = true;
-                layout.getFooter().setLess(false);
+                control.setFootLess(false);
             }
             int startPos = adapter.getItemCount();
             int APPEND_COUNT = 10;
             adapter.setItemCount(startPos + APPEND_COUNT);
-            layout.getFooter().setLess(adapter.getItemCount() >= 3 * APPEND_COUNT);
+            control.setFootLess(adapter.getItemCount() >= 3 * APPEND_COUNT);
             if (flag) {
                 adapter.notifyDataSetChanged();
             } else {
