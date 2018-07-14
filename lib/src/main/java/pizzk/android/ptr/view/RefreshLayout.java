@@ -219,7 +219,6 @@ final public class RefreshLayout extends ViewGroup implements IRefreshLayout {
         return super.onInterceptTouchEvent(ev);
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getAction();
@@ -236,7 +235,7 @@ final public class RefreshLayout extends ViewGroup implements IRefreshLayout {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         int action = event.getAction();
-        if (MotionEvent.ACTION_UP == action) {
+        if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
             if (RefreshState.OPENING == mKernel.getState()) {
                 mKernel.onStopRefresh(false);
             } else if (RefreshState.ACTIVE == mKernel.getState()) {

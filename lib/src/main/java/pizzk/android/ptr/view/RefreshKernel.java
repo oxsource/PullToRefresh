@@ -3,9 +3,11 @@ package pizzk.android.ptr.view;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.widget.Scroller;
 
+import pizzk.android.ptr.BuildConfig;
 import pizzk.android.ptr.anim.AnimatorHolder;
 import pizzk.android.ptr.anim.AnimatorListener;
 import pizzk.android.ptr.api.IRefreshAttach;
@@ -15,7 +17,9 @@ import pizzk.android.ptr.api.IRefreshLayout;
 import pizzk.android.ptr.constant.RefreshOwner;
 import pizzk.android.ptr.constant.RefreshState;
 
-public class RefreshKernel implements IRefreshKernel {
+public final class RefreshKernel implements IRefreshKernel {
+    private final static String TAG = RefreshKernel.class.getSimpleName();
+    public static boolean LOG_FLAG = false;
     //刷新布局接口
     private IRefreshLayout layout;
     //刷新状态
@@ -184,6 +188,9 @@ public class RefreshKernel implements IRefreshKernel {
             boolean opening = RefreshOwner.FOOTER == getOwner() ? distance > trigger : distance < trigger;
             mState = opening ? RefreshState.OPENING : RefreshState.ACTIVE;
             isRefreshFlag = RefreshState.ACTIVE == mState;
+            log("onScroll active distance=" + distance);
+        } else {
+            log("onScroll distance=" + distance);
         }
         float percent = distance / (attach.getView().getMeasuredHeight() / 1.0f);
         attach.onDragging(layout, percent);
@@ -207,6 +214,7 @@ public class RefreshKernel implements IRefreshKernel {
                 value = currentY > headHeight && currentY < totalHeight;
             }
         }
+        log("onPreFling " + value);
         return value;
     }
 
@@ -218,9 +226,13 @@ public class RefreshKernel implements IRefreshKernel {
                 (int) velocityY, 0, 0, Integer.MIN_VALUE,
                 Integer.MAX_VALUE);
         if (!scroller.computeScrollOffset()) return;
-        mAnimator.abort(null);
+        if (mAnimator.working()) {
+            log("onFling mAnimator is working");
+            return;
+        }
         int scrollY = view.getScrollY();
         int targetY = scrollY + scroller.getFinalY();
+        log("onFling scrollY=" + scrollY + ", targetY=" + targetY);
         mAnimator.times(0, scroller.getDuration()).values(scrollY, targetY);
         mAnimator.start(null, mScrollListener);
     }
@@ -230,6 +242,7 @@ public class RefreshKernel implements IRefreshKernel {
     public void onLayoutChanged() {
         if (RefreshOwner.FOOTER == getOwner()) {
             if (!isCloseFoot) return;
+            log("onLayoutChanged foot close");
             //利用RefreshLayout布局回调通知Footer关闭
             isCloseFoot = false;
             int delay = layout.getFooter().getFinishHintTime();
@@ -272,6 +285,7 @@ public class RefreshKernel implements IRefreshKernel {
         int scrollY = layout.getView().getScrollY();
         if (RefreshState.CLOSING == getState()) {
             if (RefreshOwner.HEADER == getOwner()) {
+                log("notifyStateChanged close header");
                 targetY = getHeadHeight();
                 if (isRefreshFlag) {
                     isRefreshFlag = false;
@@ -280,6 +294,7 @@ public class RefreshKernel implements IRefreshKernel {
                     attach.onDragging(layout, percent);
                 }
             } else if (RefreshOwner.FOOTER == getOwner()) {
+                log("notifyStateChanged close footer");
                 if (isRefreshFlag) {
                     isRefreshFlag = false;
                     targetY = 0;
@@ -296,9 +311,11 @@ public class RefreshKernel implements IRefreshKernel {
         } else if (RefreshState.REFRESHING == getState()) {
             targetY = attach.getView().getMeasuredHeight() - attach.getActivateValue();
             if (RefreshOwner.FOOTER == getOwner()) {
+                log("notifyStateChanged refresh footer");
                 targetY += getHeadHeight();
                 if (!isAutoRefresh && targetY >= scrollY) targetY = 0;
             } else {
+                log("notifyStateChanged refresh header");
                 //向上拉回时不进行回弹
                 if (!isAutoRefresh && targetY <= scrollY) targetY = 0;
             }
@@ -306,15 +323,17 @@ public class RefreshKernel implements IRefreshKernel {
         }
         if (0 == targetY) return;
         //执行动画
+        log("notifyStateChanged animation, working=" + mAnimator.working());
         isTouchLock = true;
-        mAnimator.abort(mFinishListener);
+        if (mAnimator.working()) {
+            mAnimator.abort(mFinishListener);
+        }
         mAnimator.times(animationDelay, attach.getReboundTime()).values(scrollY, targetY);
         mAnimator.start(mFinishListener, mScrollListener);
     }
 
     @Override
     public void onDestroy() {
-        mAnimator.abort(mFinishListener);
         if (null != layout.getHeader()) {
             layout.getHeader().onDestroy();
         }
@@ -330,15 +349,25 @@ public class RefreshKernel implements IRefreshKernel {
         isTouchLock = false;
         if (RefreshState.CLOSING == getState()) {
             if (RefreshOwner.FOOTER == getOwner()) {
+                log("finishRefresh closing footer");
                 View layoutView = layout.getView();
                 int headHeight = getHeadHeight();
                 int dy = layoutView.getScrollY() - headHeight;
                 layoutView.scrollTo(0, headHeight);
                 layout.getTwoLevel().getView().scrollBy(0, dy);
+            } else if (RefreshOwner.HEADER == getOwner()) {
+                log("finishRefresh closing header");
+                View layoutView = layout.getView();
+                int headHeight = getHeadHeight();
+                layoutView.scrollTo(0, headHeight);
+            } else {
+                log("finishRefresh closing none");
             }
             mOwner = RefreshOwner.NONE;
             mState = RefreshState.NONE;
             attach.onDragging(layout, 0);
+        } else if (RefreshState.REFRESHING == getState()) {
+            log("finishRefresh refresh");
         }
     }
 
@@ -355,5 +384,11 @@ public class RefreshKernel implements IRefreshKernel {
     //获取头部高度
     private int getHeadHeight() {
         return layout.getHeader().getView().getMeasuredHeight();
+    }
+
+    private void log(String message) {
+        if (LOG_FLAG && BuildConfig.DEBUG) {
+            Log.d(TAG, message);
+        }
     }
 }

@@ -41,4 +41,9 @@ public class AnimatorHolder extends ValueAnimator {
             cancel();
         }
     }
+
+    @MainThread
+    public boolean working() {
+        return isStarted() || isRunning();
+    }
 }
