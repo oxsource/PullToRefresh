@@ -1,6 +1,5 @@
 package pizzk.android.ptr.view;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,7 +16,6 @@ import pizzk.android.ptr.api.IRefreshAttach;
 import pizzk.android.ptr.api.IRefreshKernel;
 import pizzk.android.ptr.api.IRefreshLayout;
 import pizzk.android.ptr.api.IRefreshView;
-import pizzk.android.ptr.api.RefreshControl;
 import pizzk.android.ptr.constant.RefreshOwner;
 import pizzk.android.ptr.constant.RefreshState;
 import pizzk.android.ptr.wrapper.AttachWrapper;
@@ -235,7 +233,7 @@ final public class RefreshLayout extends ViewGroup implements IRefreshLayout {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         int action = event.getAction();
-        if (MotionEvent.ACTION_UP == action || MotionEvent.ACTION_CANCEL == action) {
+        if (MotionEvent.ACTION_UP == action) {
             if (RefreshState.OPENING == mKernel.getState()) {
                 mKernel.onStopRefresh(false);
             } else if (RefreshState.ACTIVE == mKernel.getState()) {

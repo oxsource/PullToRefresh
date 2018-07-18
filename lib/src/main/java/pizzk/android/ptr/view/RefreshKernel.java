@@ -19,7 +19,7 @@ import pizzk.android.ptr.constant.RefreshState;
 
 public final class RefreshKernel implements IRefreshKernel {
     private final static String TAG = RefreshKernel.class.getSimpleName();
-    public static boolean LOG_FLAG = false;
+    public static boolean LOG_FLAG = true;
     //刷新布局接口
     private IRefreshLayout layout;
     //刷新状态
@@ -176,6 +176,12 @@ public final class RefreshKernel implements IRefreshKernel {
         IRefreshAttach attach = getAttach();
         if (null == attach) return;
         View layoutView = layout.getView();
+        if (RefreshState.CLOSING == getState() || RefreshState.REFRESHING == getState()) {
+            //下拉刷新过程中超过刷新范围不允许下拉
+            if (RefreshOwner.HEADER == getOwner()) {
+                if (scroll < 0 && layoutView.getScrollY() <= -attach.getActivateValue()) return;
+            }
+        }
         layoutView.scrollBy(0, scroll);
         //计算相对滑动距离
         int distance = attach.getView().getMeasuredHeight();
@@ -189,11 +195,9 @@ public final class RefreshKernel implements IRefreshKernel {
             mState = opening ? RefreshState.OPENING : RefreshState.ACTIVE;
             isRefreshFlag = RefreshState.ACTIVE == mState;
             log("onScroll active distance=" + distance);
-        } else {
-            log("onScroll distance=" + distance);
+            float percent = distance / (attach.getView().getMeasuredHeight() / 1.0f);
+            attach.onDragging(layout, percent);
         }
-        float percent = distance / (attach.getView().getMeasuredHeight() / 1.0f);
-        attach.onDragging(layout, percent);
     }
 
     @Override

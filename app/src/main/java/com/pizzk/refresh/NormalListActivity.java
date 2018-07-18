@@ -44,7 +44,7 @@ public class NormalListActivity extends AppCompatActivity implements RefreshList
     @Override
     public void onRefresh(RefreshOwner owner) {
         this.owner = owner;
-        layout.postDelayed(runnable, 1500);
+        layout.postDelayed(runnable, 5000);
     }
 
     private Runnable runnable = new Runnable() {
