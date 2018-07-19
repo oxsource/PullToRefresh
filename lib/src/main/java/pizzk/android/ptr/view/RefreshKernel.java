@@ -19,7 +19,7 @@ import pizzk.android.ptr.constant.RefreshState;
 
 public final class RefreshKernel implements IRefreshKernel {
     private final static String TAG = RefreshKernel.class.getSimpleName();
-    public static boolean LOG_FLAG = true;
+    private static boolean LOG_FLAG = false;
     //刷新布局接口
     private IRefreshLayout layout;
     //刷新状态
@@ -173,15 +173,13 @@ public final class RefreshKernel implements IRefreshKernel {
 
     @Override
     public void onScroll(int scroll) {
+        if (RefreshState.CLOSING == getState()) {
+            //关闭状态不允许滑动
+            return;
+        }
         IRefreshAttach attach = getAttach();
         if (null == attach) return;
         View layoutView = layout.getView();
-        if (RefreshState.CLOSING == getState() || RefreshState.REFRESHING == getState()) {
-            //下拉刷新过程中超过刷新范围不允许下拉
-            if (RefreshOwner.HEADER == getOwner()) {
-                if (scroll < 0 && layoutView.getScrollY() <= -attach.getActivateValue()) return;
-            }
-        }
         layoutView.scrollBy(0, scroll);
         //计算相对滑动距离
         int distance = attach.getView().getMeasuredHeight();
@@ -194,10 +192,11 @@ public final class RefreshKernel implements IRefreshKernel {
             boolean opening = RefreshOwner.FOOTER == getOwner() ? distance > trigger : distance < trigger;
             mState = opening ? RefreshState.OPENING : RefreshState.ACTIVE;
             isRefreshFlag = RefreshState.ACTIVE == mState;
-            log("onScroll active distance=" + distance);
             float percent = distance / (attach.getView().getMeasuredHeight() / 1.0f);
             attach.onDragging(layout, percent);
+        } else {
         }
+        log("onScroll: distance=" + distance + ", state=" + getState().plain);
     }
 
     @Override
@@ -218,7 +217,7 @@ public final class RefreshKernel implements IRefreshKernel {
                 value = currentY > headHeight && currentY < totalHeight;
             }
         }
-        log("onPreFling " + value);
+        log("onPreFling: value=" + value);
         return value;
     }
 
@@ -231,12 +230,12 @@ public final class RefreshKernel implements IRefreshKernel {
                 Integer.MAX_VALUE);
         if (!scroller.computeScrollOffset()) return;
         if (mAnimator.working()) {
-            log("onFling mAnimator is working");
+            log("onFling: mAnimator is working");
             return;
         }
         int scrollY = view.getScrollY();
         int targetY = scrollY + scroller.getFinalY();
-        log("onFling scrollY=" + scrollY + ", targetY=" + targetY);
+        log("onFling: scrollY=" + scrollY + ", targetY=" + targetY);
         mAnimator.times(0, scroller.getDuration()).values(scrollY, targetY);
         mAnimator.start(null, mScrollListener);
     }
@@ -246,7 +245,7 @@ public final class RefreshKernel implements IRefreshKernel {
     public void onLayoutChanged() {
         if (RefreshOwner.FOOTER == getOwner()) {
             if (!isCloseFoot) return;
-            log("onLayoutChanged foot close");
+            log("onLayoutChanged: pending close footer");
             //利用RefreshLayout布局回调通知Footer关闭
             isCloseFoot = false;
             int delay = layout.getFooter().getFinishHintTime();
@@ -286,10 +285,11 @@ public final class RefreshKernel implements IRefreshKernel {
         IRefreshAttach attach = getAttach();
         if (null == attach) return;
         int targetY = 0, animationDelay = 0;
+        String action = "";
         int scrollY = layout.getView().getScrollY();
         if (RefreshState.CLOSING == getState()) {
             if (RefreshOwner.HEADER == getOwner()) {
-                log("notifyStateChanged close header");
+                action = "pending close header, flag=" + isRefreshFlag;
                 targetY = getHeadHeight();
                 if (isRefreshFlag) {
                     isRefreshFlag = false;
@@ -298,7 +298,7 @@ public final class RefreshKernel implements IRefreshKernel {
                     attach.onDragging(layout, percent);
                 }
             } else if (RefreshOwner.FOOTER == getOwner()) {
-                log("notifyStateChanged close footer");
+                action = "pending close footer, flag=" + isRefreshFlag;
                 if (isRefreshFlag) {
                     isRefreshFlag = false;
                     targetY = 0;
@@ -315,23 +315,22 @@ public final class RefreshKernel implements IRefreshKernel {
         } else if (RefreshState.REFRESHING == getState()) {
             targetY = attach.getView().getMeasuredHeight() - attach.getActivateValue();
             if (RefreshOwner.FOOTER == getOwner()) {
-                log("notifyStateChanged refresh footer");
+                action = "pending refresh footer";
                 targetY += getHeadHeight();
                 if (!isAutoRefresh && targetY >= scrollY) targetY = 0;
             } else {
-                log("notifyStateChanged refresh header");
+                action = "pending refresh header";
                 //向上拉回时不进行回弹
                 if (!isAutoRefresh && targetY <= scrollY) targetY = 0;
             }
             isAutoRefresh = false;
         }
+        log("notifyStateChanged: " + action);
         if (0 == targetY) return;
         //执行动画
-        log("notifyStateChanged animation, working=" + mAnimator.working());
+        log("notifyStateChanged: pending animation working=" + mAnimator.working() + ", delay=" + animationDelay);
         isTouchLock = true;
-        if (mAnimator.working()) {
-            mAnimator.abort(mFinishListener);
-        }
+        mAnimator.abort(mFinishListener);
         mAnimator.times(animationDelay, attach.getReboundTime()).values(scrollY, targetY);
         mAnimator.start(mFinishListener, mScrollListener);
     }
@@ -353,25 +352,25 @@ public final class RefreshKernel implements IRefreshKernel {
         isTouchLock = false;
         if (RefreshState.CLOSING == getState()) {
             if (RefreshOwner.FOOTER == getOwner()) {
-                log("finishRefresh closing footer");
+                log("finishRefresh: closed footer");
                 View layoutView = layout.getView();
                 int headHeight = getHeadHeight();
                 int dy = layoutView.getScrollY() - headHeight;
                 layoutView.scrollTo(0, headHeight);
                 layout.getTwoLevel().getView().scrollBy(0, dy);
             } else if (RefreshOwner.HEADER == getOwner()) {
-                log("finishRefresh closing header");
+                log("finishRefresh: closed header");
                 View layoutView = layout.getView();
                 int headHeight = getHeadHeight();
                 layoutView.scrollTo(0, headHeight);
             } else {
-                log("finishRefresh closing none");
+                log("finishRefresh: closed none");
             }
             mOwner = RefreshOwner.NONE;
             mState = RefreshState.NONE;
             attach.onDragging(layout, 0);
         } else if (RefreshState.REFRESHING == getState()) {
-            log("finishRefresh refresh");
+            log("finishRefresh: closed when refresh");
         }
     }
 
@@ -392,7 +391,12 @@ public final class RefreshKernel implements IRefreshKernel {
 
     private void log(String message) {
         if (LOG_FLAG && BuildConfig.DEBUG) {
-            Log.d(TAG, message);
+            Log.d(TAG, TAG + "-->" + message);
         }
+    }
+
+    //日志输出开关
+    public static void activeLog(boolean value) {
+        LOG_FLAG = value;
     }
 }
