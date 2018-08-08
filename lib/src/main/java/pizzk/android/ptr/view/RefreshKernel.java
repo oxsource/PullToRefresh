@@ -19,7 +19,7 @@ import pizzk.android.ptr.constant.RefreshState;
 
 public final class RefreshKernel implements IRefreshKernel {
     private final static String TAG = RefreshKernel.class.getSimpleName();
-    private static boolean LOG_FLAG = false;
+    private static boolean LOG_FLAG = true;
     //刷新布局接口
     private IRefreshLayout layout;
     //刷新状态
@@ -194,7 +194,6 @@ public final class RefreshKernel implements IRefreshKernel {
             isRefreshFlag = RefreshState.ACTIVE == mState;
             float percent = distance / (attach.getView().getMeasuredHeight() / 1.0f);
             attach.onDragging(layout, percent);
-        } else {
         }
         log("onScroll: distance=" + distance + ", state=" + getState().plain);
     }
@@ -225,15 +224,20 @@ public final class RefreshKernel implements IRefreshKernel {
     public void onFling(float velocityX, float velocityY) {
         View view = layout.getView();
         Scroller scroller = new Scroller(view.getContext());
+        int scrollY = view.getScrollY();
+        int minY = 0;
+        int maxY = 0;
+        if (RefreshOwner.HEADER == getOwner()) {
+            minY = -scrollY;
+            maxY = getHeadHeight() - scrollY;
+        }
         scroller.fling(view.getScrollX(), view.getScrollY(), (int) velocityX,
-                (int) velocityY, 0, 0, Integer.MIN_VALUE,
-                Integer.MAX_VALUE);
+                (int) velocityY, 0, 0, minY, maxY);
         if (!scroller.computeScrollOffset()) return;
         if (mAnimator.working()) {
             log("onFling: mAnimator is working");
             return;
         }
-        int scrollY = view.getScrollY();
         int targetY = scrollY + scroller.getFinalY();
         log("onFling: scrollY=" + scrollY + ", targetY=" + targetY);
         mAnimator.times(0, scroller.getDuration()).values(scrollY, targetY);
