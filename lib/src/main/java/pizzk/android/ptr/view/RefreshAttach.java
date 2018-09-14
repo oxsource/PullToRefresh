@@ -165,7 +165,7 @@ public class RefreshAttach extends RelativeLayout implements IRefreshAttach {
                 changeArrowDirection(false);
                 if (kernel.isOwnerLess(owner)) {
                     vRefresh.setVisibility(GONE);
-                    vAttachLess.setVisibility(VISIBLE);
+                    vAttachLess.setVisibility(TextUtils.isEmpty(hintLess) ? GONE : VISIBLE);
                 } else {
                     vRefresh.setVisibility(VISIBLE);
                     vAttachLess.setVisibility(GONE);
@@ -235,7 +235,7 @@ public class RefreshAttach extends RelativeLayout implements IRefreshAttach {
     }
 
     public String getHintLess() {
-        return TextUtils.isEmpty(hintLess) ? "木有了" : hintLess;
+        return TextUtils.isEmpty(hintLess) ? "" : hintLess;
     }
 
     public void setHintLess(String text) {

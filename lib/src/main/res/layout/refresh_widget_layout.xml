@@ -16,7 +16,7 @@
             android:layout_centerHorizontal="true"
             android:layout_marginLeft="0dp"
             android:gravity="center_vertical"
-            android:text="下拉刷新"
+            android:text=""
             android:textColor="#8a8a8a"
             android:textSize="15sp"/>
 
@@ -67,7 +67,7 @@
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
             android:gravity="center"
-            android:text="木有了"
+            android:text=""
             android:textColor="#8a8a8a"
             android:textSize="15sp"/>
 
